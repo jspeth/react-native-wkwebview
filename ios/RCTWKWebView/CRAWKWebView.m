@@ -107,6 +107,15 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   }
 }
 
+- (void)didMoveToWindow
+{
+  [super didMoveToWindow];
+
+  if (self.inputAccessoryViewID) {
+    [self setCustomInputAccessoryViewWithNativeID:self.inputAccessoryViewID];
+  }
+}
+
 - (void)setInjectJavaScript:(NSString *)injectJavaScript {
   _injectJavaScript = injectJavaScript;
   self.atStartScript = [[WKUserScript alloc] initWithSource:injectJavaScript
@@ -193,23 +202,34 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 - (void)setCustomInputAccessoryViewWithNativeID:(NSString *)nativeID
 {
 #if !TARGET_OS_TV
-  __weak CRAWKWebView *weakSelf = self;
-  [self.bridge.uiManager rootViewForReactTag:self.reactTag withCompletion:^(UIView *rootView) {
-    CRAWKWebView *strongSelf = weakSelf;
-    if (rootView) {
-      UIView *accessoryView = [strongSelf.bridge.uiManager viewForNativeID:nativeID
-                                                               withRootTag:rootView.reactTag];
-      // For backwards compatibility with React Native 0.55.4, use the content view.
-      if ([accessoryView respondsToSelector:@selector(content)]) {
-        accessoryView = [accessoryView valueForKey:@"content"];
-      }
-      if ([accessoryView respondsToSelector:@selector(inputAccessoryView)]) {
-        [strongSelf swizzleWebView];
-        strongSelf.inputAccessoryView = [accessoryView valueForKey:@"inputAccessoryView"];
-      }
-    }
-  }];
+  UIView *accessoryView = [self _lookupViewForNativeID:nativeID inView:self.window];
+
+  // For backwards compatibility with React Native 0.55.4, use the content view.
+  if ([accessoryView respondsToSelector:@selector(content)]) {
+    accessoryView = [accessoryView valueForKey:@"content"];
+  }
+  if ([accessoryView respondsToSelector:@selector(inputAccessoryView)]) {
+    [self swizzleWebView];
+    self.inputAccessoryView = [accessoryView valueForKey:@"inputAccessoryView"];
+  }
 #endif /* !TARGET_OS_TV */
+}
+
+// Recursively search the view hierarchy for a view matching the native ID
+// copied from RCTUIManager.m
+- (UIView *)_lookupViewForNativeID:(NSString *)nativeID inView:(UIView *)view
+{
+  if (view != nil && [nativeID isEqualToString:view.nativeID]) {
+    return view;
+  }
+
+  for (UIView *subview in view.subviews) {
+    UIView *targetView = [self _lookupViewForNativeID:nativeID inView:subview];
+    if (targetView != nil) {
+      return targetView;
+    }
+  }
+  return nil;
 }
 
 -(void)setHideKeyboardAccessoryView:(BOOL)hideKeyboardAccessoryView
