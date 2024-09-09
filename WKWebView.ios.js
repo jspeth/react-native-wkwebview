@@ -15,7 +15,6 @@ import ReactNative, {
 } from 'react-native';
 
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
-import deprecatedPropType from 'react-native/Libraries/Utilities/deprecatedPropType';
 import invariant from 'fbjs/lib/invariant';
 import keyMirror from 'fbjs/lib/keyMirror';
 const WKWebViewManager = NativeModules.CRAWKWebViewManager;
@@ -68,6 +67,25 @@ const defaultRenderError = (errorDomain, errorCode, errorDesc) => (
     </Text>
   </View>
 );
+
+/**
+ * Adds a deprecation warning when the prop is used.
+ */
+const deprecatedPropType = (propType, explanation) => {
+  return (props, propName, componentName, ...rest) => {
+    // Don't warn for native components.
+    if (
+      !global.RN$Bridgeless &&
+      !UIManager.getViewManagerConfig(componentName) &&
+      props[propName] !== undefined
+    ) {
+      console.warn(
+        `\`${propName}\` supplied to \`${componentName}\` has been deprecated. ${explanation}`,
+      );
+    }
+    return propType(props, propName, componentName, ...rest);
+  };
+};
 
 /**
  * Renders a native WebView.
