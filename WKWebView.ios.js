@@ -4,15 +4,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactNative, {
   requireNativeComponent,
-  EdgeInsetsPropType,
   StyleSheet,
   UIManager,
   View,
-  ViewPropTypes,
   NativeModules,
   Text,
   ActivityIndicator
 } from 'react-native';
+import { EdgeInsetsPropType, ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import invariant from 'fbjs/lib/invariant';
