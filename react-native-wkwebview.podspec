@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/jspeth/react-native-wkwebview"
 
   s.license      = "MIT"
-  s.platform     = :ios, "9.0"
+  s.platform     = :ios, "13.4"
 
   s.source       = { :git => "https://github.com/jspeth/react-native-wkwebview.git", :branch => "master" }
 
